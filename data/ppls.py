@@ -4,7 +4,7 @@ import numpy as np
 def generate_and_save_data(train_size=100, var_size=261, file='var.npz'):
 
     # The % of VaR errors
-    errors = 0.20
+    errors = 0.05
     ok_error_split = int(train_size * errors)
 
     # The VaR 'features' that represent an vector in error, i.e. first, middle and last

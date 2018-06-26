@@ -28,7 +28,7 @@ import time
 
 learning_rate = 0.1
 
-training_epochs = 2
+training_epochs = 3
 
 batch_size = 1000
 
@@ -69,8 +69,8 @@ yhat = tf.nn.sigmoid(tf.matmul(X, W) + b, name="activation")
 # Step 3 - Definition Evaluation (i.e. cost function)
 #####################################################
 
-cost = tf.nn.l2_loss(yhat-y, name="squared_error_cost")
-# cost = tf.reduce_mean(tf.square(yhat - y))
+#cost = tf.nn.l2_loss(yhat-y, name="squared_error_cost")
+cost = tf.reduce_mean(tf.square(yhat - y))
 
 
 ####################
@@ -108,7 +108,9 @@ sess = tf.Session()
 
 sess.run(init)
 
-correct_prediction = tf.equal(tf.argmax(yhat, axis=1), tf.argmax(y, axis=1))
+prediction = tf.argmax(yhat, axis=1)
+
+correct_prediction = tf.equal(prediction, tf.argmax(y, axis=1))
 
 accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
 
@@ -140,10 +142,7 @@ for epoch in range(training_epochs):
 
         x_train_batch, y_train_batch = next_batch(X_train, y_train, batch_size, i)
 
-        # Project the cols
-        # x_train = np.column_stack((x_train[:, 0], x_train[:, int(var_size/2)], x_train[:, var_size-1]))
-
-        train_data = {X: X_train, y: y_train}
+        train_data = {X: x_train_batch, y: y_train_batch}
 
         sess.run(optimiser, feed_dict=train_data)
 
@@ -151,7 +150,7 @@ for epoch in range(training_epochs):
 
             step_values.append(step)
 
-            curr_accuracy, curr_cost, curr_summary = sess.run([accuracy, cost, all_summary], feed_dict=train_data)
+            curr_prediction, curr_accuracy, curr_cost, curr_summary = sess.run([prediction, accuracy, cost, all_summary], feed_dict=train_data)
 
             accuracy_values.append(curr_accuracy)
 
@@ -160,6 +159,8 @@ for epoch in range(training_epochs):
             writer.add_summary(curr_summary, step)
 
             print(step, "accuracy=", curr_accuracy, ", cost=", curr_cost)
+
+            print(step, len(curr_prediction[curr_prediction == 1]))
 
             # Plot progress
             ax1.plot(step_values, accuracy_values)
@@ -172,9 +173,6 @@ for epoch in range(training_epochs):
 ####################
 
 x_test, y_test = ppls.load_data(file='var_test.npz')
-
-# Project the cols
-# x_test = np.column_stack((x_test[:, 0], x_test[:, int(var_size / 2)], x_test[:, var_size - 1]))
 
 test_data = {X: x_test, y: y_test}
 print("Testing Accuracy = ", sess.run(accuracy, feed_dict = test_data))
