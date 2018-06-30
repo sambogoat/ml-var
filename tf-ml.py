@@ -1,8 +1,6 @@
-from data import ppls
 import tensorflow as tf
 import matplotlib.pyplot as plt
-import numpy as np
-import time
+from data import ppls
 
 ######################################################################################################################
 #
@@ -30,31 +28,22 @@ learning_rate = 0.1
 
 training_epochs = 3
 
-batch_size = 1000
+batch_size = 100
 
-# TODO - Move this to data module
-def next_batch(x, y, size, num):
-    s = num * size
-    e = s + size
-    return x[s:e], y[s:e]
+ppls_size = 261
+
+num_labels = 2
 
 ###################
 # Step 1 - Set-up
 ###################
 
-# Load all the data
-X_train, y_train = ppls.load_data()
-
-num_features = X_train.shape[1]
-
-num_labels = y_train.shape[1]
-
 # Graph inputs
-X = tf.placeholder(tf.float32, [None, num_features])
+X = tf.placeholder(tf.float32, [None, ppls_size])
 y = tf.placeholder(tf.float32, [None, num_labels])
 
 # Model weights
-W = tf.Variable(tf.truncated_normal([num_features, num_labels], stddev=0.1), name="W")
+W = tf.Variable(tf.truncated_normal([ppls_size, num_labels], stddev=0.1), name="W")
 b = tf.Variable(tf.truncated_normal([num_labels], stddev=0.1), name="b")
 
 init = tf.global_variables_initializer()
@@ -71,7 +60,6 @@ yhat = tf.nn.sigmoid(tf.matmul(X, W) + b, name="activation")
 
 #cost = tf.nn.l2_loss(yhat-y, name="squared_error_cost")
 cost = tf.reduce_mean(tf.square(yhat - y))
-
 
 ####################
 # Step 4 - Optimiser
@@ -132,7 +120,9 @@ print("Training Epochs: {}".format(training_epochs))
 
 for epoch in range(training_epochs):
 
-    num_batches = int(len(X_train) / batch_size)
+    epoch_ppls = ppls.load_data(ppls_size)
+
+    num_batches = int(epoch_ppls.train.length / batch_size)
 
     print("Number of batches: {} ({})".format(num_batches, batch_size))
 
@@ -140,7 +130,7 @@ for epoch in range(training_epochs):
 
         step = epoch*num_batches+i
 
-        x_train_batch, y_train_batch = next_batch(X_train, y_train, batch_size, i)
+        x_train_batch, y_train_batch = epoch_ppls.train.next_batch(batch_size)
 
         train_data = {X: x_train_batch, y: y_train_batch}
 
