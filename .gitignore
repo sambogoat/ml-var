@@ -1,4 +1,4 @@
 *.pyc
 .idea
 *.npz
-summary
+*summary
